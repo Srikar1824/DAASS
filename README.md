@@ -123,7 +123,7 @@ Instead of fixed time slots and manual rescheduling, the system dynamically prio
 							    - Waiting time prediction
 							    - Overload & buffer alerts
 							    
-				ii.Backend API (Node + Express) - Handles requests from frontend
+				ii.Backend API - Handles requests from frontend
 								- Validates patient data
 								- Triggers scheduling recalculation
 								- Manages system state
