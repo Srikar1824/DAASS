@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>DAASS — Walk-In Registration</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0a0e14;
+      --surface: #111620;
+      --surface2: #161d2b;
+      --border: #1e2a3a;
+      --accent: #00d4ff;
+      --green: #00e5a0;
+      --red: #ff4f5e;
+      --yellow: #f5c542;
+      --orange: #ff8c42;
+      --text: #e8f0f8;
+      --muted: #5a7090;
+      --muted2: #3a5070;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image:
+        linear-gradient(var(--border) 1px, transparent 1px),
+        linear-gradient(90deg, var(--border) 1px, transparent 1px);
+      background-size: 40px 40px;
+      opacity: 0.25;
+      pointer-events: none;
+    }
+
+    header {
+      position: sticky; top: 0; z-index: 10;
+      background: rgba(10,14,20,0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 32px; height: 64px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+
+    .logo { display: flex; align-items: center; gap: 12px; }
+    .logo-mark {
+      width: 36px; height: 36px;
+      background: var(--green);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Syne', sans-serif; font-weight: 800; font-size: 13px;
+      color: var(--bg);
+    }
+    .logo-text { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 18px; letter-spacing: 0.08em; }
+    .logo-sub { font-size: 10px; color: var(--muted); font-family: 'DM Mono', monospace; }
+
+    .nav-links { display: flex; gap: 8px; }
+    .nav-link {
+      padding: 7px 16px; border-radius: 7px;
+      font-size: 12px; font-family: 'DM Mono', monospace;
+      color: var(--muted); text-decoration: none;
+      border: 1px solid transparent;
+      transition: all 0.15s; letter-spacing: 0.06em; text-transform: uppercase;
+    }
+    .nav-link:hover { border-color: var(--border); color: var(--text); }
+    .nav-link.active { background: rgba(0,229,160,0.1); border-color: var(--green); color: var(--green); }
+
+    .page {
+      position: relative; z-index: 1;
+      max-width: 560px; margin: 48px auto;
+      padding: 0 24px;
+    }
+
+    .page-header { margin-bottom: 32px; }
+    .page-tag {
+      font-family: 'DM Mono', monospace; font-size: 10px;
+      letter-spacing: 0.15em; text-transform: uppercase;
+      color: var(--green);
+      background: rgba(0,229,160,0.08);
+      border: 1px solid rgba(0,229,160,0.2);
+      padding: 4px 12px; border-radius: 20px;
+      display: inline-block; margin-bottom: 16px;
+    }
+    .page-title {
+      font-family: 'Syne', sans-serif; font-size: 28px; font-weight: 800;
+      line-height: 1.15; margin-bottom: 8px;
+    }
+    .page-desc { font-size: 14px; color: var(--muted); line-height: 1.6; }
+
+    .form-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+    }
+
+    .form-card-header {
+      padding: 18px 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 10px;
+    }
+
+    .form-card-header-dot {
+      width: 8px; height: 8px; border-radius: 50%; background: var(--green);
+    }
+
+    .form-card-title {
+      font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 600;
+      letter-spacing: 0.1em; text-transform: uppercase;
+    }
+
+    .form-body { padding: 24px; }
+
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .form-full { grid-column: 1 / -1; }
+
+    .form-row { margin-bottom: 0; }
+
+    label {
+      display: block;
+      font-size: 10px; font-family: 'DM Mono', monospace;
+      color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase;
+      margin-bottom: 7px;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      padding: 11px 14px;
+      font-family: 'DM Sans', sans-serif; font-size: 14px;
+      outline: none; transition: border-color 0.2s;
+      appearance: none; -webkit-appearance: none;
+    }
+    input:focus, select:focus, textarea:focus { border-color: var(--green); }
+    select option { background: var(--surface2); }
+    input::placeholder { color: var(--muted2); }
+
+    .divider {
+      border: none; border-top: 1px solid var(--border);
+      margin: 20px 0;
+    }
+
+    .priority-preview {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 16px;
+      margin-top: 20px;
+      display: none;
+    }
+
+    .priority-preview.show { display: block; }
+
+    .pp-label {
+      font-size: 10px; font-family: 'DM Mono', monospace;
+      color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    .pp-row {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 6px;
+    }
+
+    .pp-key { font-size: 12px; color: var(--muted); }
+    .pp-val { font-family: 'DM Mono', monospace; font-size: 13px; font-weight: 500; }
+
+    .priority-pill {
+      padding: 3px 10px; border-radius: 5px;
+      font-size: 11px; font-family: 'DM Mono', monospace;
+      font-weight: 500; letter-spacing: 0.06em;
+    }
+    .p1 { background: rgba(255,79,94,0.15);  color: #ff4f5e; }
+    .p2 { background: rgba(255,140,66,0.15); color: #ff8c42; }
+    .p3 { background: rgba(245,197,66,0.15); color: #f5c542; }
+    .p4 { background: rgba(0,229,160,0.15);  color: #00e5a0; }
+
+    .submit-btn {
+      width: 100%; padding: 13px;
+      border-radius: 9px; border: none;
+      background: var(--green); color: var(--bg);
+      font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      cursor: pointer; margin-top: 20px;
+      transition: all 0.2s;
+    }
+    .submit-btn:hover { background: #00c98a; transform: translateY(-1px); }
+    .submit-btn:active { transform: translateY(0); }
+    .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    /* SUCCESS STATE */
+    .success-screen {
+      display: none;
+      text-align: center;
+      padding: 40px 24px;
+    }
+
+    .success-screen.show { display: block; }
+    .form-body.hide { display: none; }
+
+    .success-icon {
+      width: 64px; height: 64px;
+      background: rgba(0,229,160,0.15);
+      border: 2px solid var(--green);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 28px; margin: 0 auto 20px;
+    }
+
+    .success-title {
+      font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 700;
+      margin-bottom: 8px; color: var(--green);
+    }
+
+    .success-desc { font-size: 14px; color: var(--muted); margin-bottom: 24px; }
+
+    .token-box {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px; padding: 16px;
+      margin-bottom: 24px;
+    }
+
+    .token-label {
+      font-size: 10px; font-family: 'DM Mono', monospace;
+      color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .token-row {
+      display: flex; justify-content: space-between;
+      padding: 6px 0; font-size: 13px;
+      border-bottom: 1px solid var(--border);
+    }
+    .token-row:last-child { border-bottom: none; }
+    .token-key { color: var(--muted); font-family: 'DM Mono', monospace; font-size: 11px; }
+    .token-val { font-weight: 500; }
+
+    .reset-btn {
+      padding: 10px 28px; border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--surface2); color: var(--text);
+      font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 600;
+      cursor: pointer; letter-spacing: 0.06em; text-transform: uppercase;
+      transition: all 0.15s;
+    }
+    .reset-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* TOAST */
+    .toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 300; }
+    .toast {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 8px; padding: 12px 18px;
+      font-size: 12px; font-family: 'DM Mono', monospace;
+      min-width: 220px; margin-top: 8px;
+      animation: slideIn 0.2s ease;
+      display: flex; align-items: center; gap: 10px;
+    }
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to   { transform: translateX(0);   opacity: 1; }
+    }
+    .toast.success { border-left: 3px solid var(--green); }
+    .toast.error   { border-left: 3px solid var(--red);   }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-mark">WI</div>
+    <div>
+      <div class="logo-text">DAASS</div>
+      <div class="logo-sub">Walk-In Registration</div>
+    </div>
+  </div>
+  <nav class="nav-links">
+    <a href="index.html"    class="nav-link">Dashboard</a>
+    <a href="register.html" class="nav-link active">Walk-In</a>
+    <a href="book.html"     class="nav-link">Online Booking</a>
+  </nav>
+</header>
+
+<div class="page">
+  <div class="page-header">
+    <div class="page-tag">Staff Portal · Walk-In</div>
+    <div class="page-title">Register Walk-In Patient</div>
+    <div class="page-desc">Enter patient details. The scheduling engine will automatically assign priority and estimated consultation time.</div>
+  </div>
+
+  <div class="form-card">
+    <div class="form-card-header">
+      <div class="form-card-header-dot"></div>
+      <div class="form-card-title">Patient Details</div>
+    </div>
+
+    <!-- FORM -->
+    <div class="form-body" id="form-body">
+      <div class="form-grid">
+
+        <div class="form-row form-full">
+          <label>Full Name *</label>
+          <input id="name" type="text" placeholder="Patient full name" />
+        </div>
+
+        <div class="form-row">
+          <label>Age *</label>
+          <input id="age" type="number" placeholder="Years" min="1" max="120" />
+        </div>
+
+        <div class="form-row">
+          <label>Phone</label>
+          <input id="phone" type="tel" placeholder="Optional" />
+        </div>
+
+        <div class="form-row form-full">
+          <label>Symptom Category *</label>
+          <select id="symptom" onchange="updatePreview()">
+            <option value="" disabled selected>Select primary symptom...</option>
+            <option value="chest_pain">🔴 Chest Pain / Breathing Difficulty</option>
+            <option value="trauma">🔴 Trauma / Injury / Accident</option>
+            <option value="high_fever">🟠 High Fever (above 103°F)</option>
+            <option value="pregnancy">🟠 Pregnancy Related</option>
+            <option value="fever_cold">🟡 Fever / Cold / Flu</option>
+            <option value="stomach">🟡 Abdominal Pain / Vomiting</option>
+            <option value="diabetes_bp">🟢 Diabetes / BP Follow-up</option>
+            <option value="routine">🟢 Routine Checkup</option>
+            <option value="other">⚪ Other</option>
+          </select>
+        </div>
+
+        <div class="form-row form-full">
+          <label>Pain Level (1 = mild, 10 = severe)</label>
+          <input id="pain" type="number" min="1" max="10" placeholder="Rate 1–10" onchange="updatePreview()" oninput="updatePreview()" />
+        </div>
+
+        <div class="form-row form-full">
+          <label>Emergency?</label>
+          <select id="emergency">
+            <option value="walkin">No — Regular Walk-In</option>
+            <option value="emergency">Yes — Emergency / Urgent</option>
+          </select>
+        </div>
+
+      </div>
+
+      <hr class="divider"/>
+
+      <!-- PRIORITY PREVIEW -->
+      <div class="priority-preview" id="priority-preview">
+        <div class="pp-label">Scheduling Engine Preview</div>
+        <div class="pp-row">
+          <span class="pp-key">Priority Class</span>
+          <span class="pp-val" id="pp-priority">—</span>
+        </div>
+        <div class="pp-row">
+          <span class="pp-key">Urgency Score</span>
+          <span class="pp-val" id="pp-score">—</span>
+        </div>
+        <div class="pp-row">
+          <span class="pp-key">Est. Consult Time</span>
+          <span class="pp-val" id="pp-time">—</span>
+        </div>
+      </div>
+
+      <button class="submit-btn" id="submit-btn" onclick="submitPatient()">
+        Register & Add to Queue
+      </button>
+    </div>
+
+    <!-- SUCCESS -->
+    <div class="success-screen" id="success-screen">
+      <div class="success-icon">✓</div>
+      <div class="success-title">Patient Registered</div>
+      <div class="success-desc">Successfully added to the queue. Doctor's dashboard will update automatically.</div>
+
+      <div class="token-box" id="token-box"></div>
+
+      <button class="reset-btn" onclick="resetForm()">Register Next Patient</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toast-container"></div>
+
+<script>
+const API = 'http://localhost:3000/api';
+
+// ─── Scheduling logic (mirrored from backend for preview) ──────────────────
+const SYMPTOM_MAP = {
+  chest_pain:  { priority: 1, time: 12 }, trauma:      { priority: 1, time: 15 },
+  high_fever:  { priority: 2, time: 10 }, pregnancy:   { priority: 2, time: 12 },
+  fever_cold:  { priority: 3, time: 7  }, stomach:     { priority: 3, time: 8  },
+  diabetes_bp: { priority: 4, time: 6  }, routine:     { priority: 4, time: 5  },
+  other:       { priority: 3, time: 7  },
+};
+
+function computeScore(symptom, age, pain, type) {
+  const s = SYMPTOM_MAP[symptom] || { priority: 3, time: 7 };
+  let score = (5 - s.priority) * 25;
+  if (type === 'emergency') score += 50;
+  if (age >= 65 || age <= 5) score += 15;
+  else if (age >= 50)        score += 8;
+  score += (parseInt(pain) || 1) * 2;
+  return Math.min(score, 100);
+}
+
+function estimateTime(symptom, age, pain, type) {
+  const s = SYMPTOM_MAP[symptom] || { priority: 3, time: 7 };
+  let t = s.time;
+  if (age >= 65 || age <= 5) t += 3;
+  if (type === 'emergency') t += 3;
+  if ((parseInt(pain) || 1) >= 8) t += 2;
+  return t;
+}
+
+function getPClass(score) {
+  if (score >= 70) return 1;
+  if (score >= 50) return 2;
+  if (score >= 30) return 3;
+  return 4;
+}
+
+function updatePreview() {
+  const symptom = document.getElementById('symptom').value;
+  const age     = parseInt(document.getElementById('age').value) || 30;
+  const pain    = parseInt(document.getElementById('pain').value) || 1;
+  const type    = document.getElementById('emergency').value;
+
+  if (!symptom) return;
+
+  const score = computeScore(symptom, age, pain, type);
+  const pclass = getPClass(score);
+  const time  = estimateTime(symptom, age, pain, type);
+
+  const pLabels = { 1:'Emergency', 2:'Severe', 3:'Moderate', 4:'Mild' };
+  const pCls    = { 1:'p1', 2:'p2', 3:'p3', 4:'p4' };
+
+  document.getElementById('pp-priority').innerHTML =
+    `<span class="priority-pill ${pCls[pclass]}">P${pclass} — ${pLabels[pclass]}</span>`;
+  document.getElementById('pp-score').textContent  = `${score} / 100`;
+  document.getElementById('pp-time').textContent   = `~${time} minutes`;
+
+  document.getElementById('priority-preview').classList.add('show');
+}
+
+document.getElementById('age').addEventListener('input', updatePreview);
+document.getElementById('emergency').addEventListener('change', updatePreview);
+
+// ─── Submit ────────────────────────────────────────────────────────────────
+async function submitPatient() {
+  const name    = document.getElementById('name').value.trim();
+  const age     = document.getElementById('age').value;
+  const phone   = document.getElementById('phone').value.trim();
+  const symptom = document.getElementById('symptom').value;
+  const pain    = document.getElementById('pain').value || 1;
+  const type    = document.getElementById('emergency').value;
+
+  if (!name || !age || !symptom) {
+    showToast('Please fill all required fields', 'error');
+    return;
+  }
+
+  const btn = document.getElementById('submit-btn');
+  btn.disabled = true;
+  btn.textContent = 'Registering...';
+
+  try {
+    const res = await fetch(`${API}/patients`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, age: parseInt(age), phone, symptom, pain: parseInt(pain), type }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) throw new Error(data.error || 'Registration failed');
+
+    const p = data.patient;
+    const pLabels = { 1:'Emergency', 2:'Severe', 3:'Moderate', 4:'Mild' };
+
+    document.getElementById('token-box').innerHTML = `
+      <div class="token-label">Registration Summary</div>
+      <div class="token-row"><span class="token-key">Name</span><span class="token-val">${p.name}</span></div>
+      <div class="token-row"><span class="token-key">Priority</span><span class="token-val">P${p.priorityClass} — ${pLabels[p.priorityClass]}</span></div>
+      <div class="token-row"><span class="token-key">Est. Time</span><span class="token-val">${p.estimatedTime} min</span></div>
+      <div class="token-row"><span class="token-key">Token ID</span><span class="token-val" style="font-family:'DM Mono',monospace;font-size:11px">${p._id.slice(-8).toUpperCase()}</span></div>
+    `;
+
+    document.getElementById('form-body').classList.add('hide');
+    document.getElementById('success-screen').classList.add('show');
+
+  } catch (err) {
+    showToast(err.message, 'error');
+    btn.disabled = false;
+    btn.textContent = 'Register & Add to Queue';
+  }
+}
+
+function resetForm() {
+  document.getElementById('form-body').classList.remove('hide');
+  document.getElementById('success-screen').classList.remove('show');
+  document.getElementById('priority-preview').classList.remove('show');
+  ['name','age','phone','pain'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('symptom').value = '';
+  document.getElementById('emergency').value = 'walkin';
+  document.getElementById('submit-btn').disabled = false;
+  document.getElementById('submit-btn').textContent = 'Register & Add to Queue';
+}
+
+function showToast(msg, type = 'error') {
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.innerHTML = `<span>${type === 'success' ? '✓' : '✗'}</span><span>${msg}</span>`;
+  c.appendChild(t);
+  setTimeout(() => t.remove(), 3500);
+}
+</script>
+</body>
+</html>

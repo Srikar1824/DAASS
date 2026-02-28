@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>DAASS — Book Appointment</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0a0e14;
+      --surface: #111620;
+      --surface2: #161d2b;
+      --border: #1e2a3a;
+      --accent: #00d4ff;
+      --green: #00e5a0;
+      --red: #ff4f5e;
+      --yellow: #f5c542;
+      --text: #e8f0f8;
+      --muted: #5a7090;
+      --muted2: #3a5070;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg); color: var(--text); min-height: 100vh;
+    }
+    body::before {
+      content: ''; position: fixed; inset: 0;
+      background-image:
+        linear-gradient(var(--border) 1px, transparent 1px),
+        linear-gradient(90deg, var(--border) 1px, transparent 1px);
+      background-size: 40px 40px; opacity: 0.25; pointer-events: none;
+    }
+
+    header {
+      position: sticky; top: 0; z-index: 10;
+      background: rgba(10,14,20,0.92); backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 32px; height: 64px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .logo { display: flex; align-items: center; gap: 12px; }
+    .logo-mark {
+      width: 36px; height: 36px; background: var(--accent);
+      border-radius: 8px; display: flex; align-items: center; justify-content: center;
+      font-family: 'Syne', sans-serif; font-weight: 800; font-size: 13px; color: var(--bg);
+    }
+    .logo-text { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 18px; letter-spacing: 0.08em; }
+    .logo-sub { font-size: 10px; color: var(--muted); font-family: 'DM Mono', monospace; }
+    .nav-links { display: flex; gap: 8px; }
+    .nav-link {
+      padding: 7px 16px; border-radius: 7px;
+      font-size: 12px; font-family: 'DM Mono', monospace;
+      color: var(--muted); text-decoration: none;
+      border: 1px solid transparent; transition: all 0.15s;
+      letter-spacing: 0.06em; text-transform: uppercase;
+    }
+    .nav-link:hover { border-color: var(--border); color: var(--text); }
+    .nav-link.active { background: rgba(0,212,255,0.1); border-color: var(--accent); color: var(--accent); }
+
+    .page {
+      position: relative; z-index: 1;
+      max-width: 580px; margin: 48px auto; padding: 0 24px;
+    }
+
+    .page-header { margin-bottom: 32px; }
+    .page-tag {
+      font-family: 'DM Mono', monospace; font-size: 10px;
+      letter-spacing: 0.15em; text-transform: uppercase; color: var(--accent);
+      background: rgba(0,212,255,0.08); border: 1px solid rgba(0,212,255,0.2);
+      padding: 4px 12px; border-radius: 20px;
+      display: inline-block; margin-bottom: 16px;
+    }
+    .page-title { font-family: 'Syne', sans-serif; font-size: 28px; font-weight: 800; line-height: 1.15; margin-bottom: 8px; }
+    .page-desc { font-size: 14px; color: var(--muted); line-height: 1.6; }
+
+    .notice {
+      background: rgba(245,197,66,0.06);
+      border: 1px solid rgba(245,197,66,0.2);
+      border-radius: 10px; padding: 12px 16px;
+      font-size: 12px; color: var(--yellow);
+      font-family: 'DM Mono', monospace;
+      margin-bottom: 24px;
+      display: flex; align-items: flex-start; gap: 10px;
+    }
+
+    .form-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px; overflow: hidden;
+    }
+    .form-card-header {
+      padding: 18px 24px; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 10px;
+    }
+    .fch-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
+    .form-card-title {
+      font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 600;
+      letter-spacing: 0.1em; text-transform: uppercase;
+    }
+
+    .form-body { padding: 24px; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .form-full { grid-column: 1 / -1; }
+
+    label {
+      display: block; font-size: 10px; font-family: 'DM Mono', monospace;
+      color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 7px;
+    }
+    input, select {
+      width: 100%; background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 8px; color: var(--text); padding: 11px 14px;
+      font-family: 'DM Sans', sans-serif; font-size: 14px;
+      outline: none; transition: border-color 0.2s;
+      appearance: none; -webkit-appearance: none;
+    }
+    input:focus, select:focus { border-color: var(--accent); }
+    select option { background: var(--surface2); }
+    input::placeholder { color: var(--muted2); }
+
+    /* TIME SLOT GRID */
+    .slot-grid {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
+      margin-top: 2px;
+    }
+
+    .slot-btn {
+      padding: 9px 6px; border-radius: 7px;
+      border: 1px solid var(--border); background: var(--surface2);
+      color: var(--muted); font-size: 12px; font-family: 'DM Mono', monospace;
+      cursor: pointer; text-align: center; transition: all 0.15s;
+    }
+    .slot-btn:hover { border-color: var(--accent); color: var(--text); }
+    .slot-btn.selected { background: rgba(0,212,255,0.1); border-color: var(--accent); color: var(--accent); }
+    .slot-btn.taken { opacity: 0.35; cursor: not-allowed; text-decoration: line-through; }
+
+    .divider { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
+
+    .submit-btn {
+      width: 100%; padding: 13px; border-radius: 9px; border: none;
+      background: var(--accent); color: var(--bg);
+      font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      cursor: pointer; margin-top: 20px; transition: all 0.2s;
+    }
+    .submit-btn:hover { background: #00bde0; transform: translateY(-1px); }
+    .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    /* SUCCESS */
+    .success-screen { display: none; text-align: center; padding: 40px 24px; }
+    .success-screen.show { display: block; }
+    .form-body.hide { display: none; }
+
+    .success-icon {
+      width: 64px; height: 64px; background: rgba(0,212,255,0.1);
+      border: 2px solid var(--accent); border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 28px; margin: 0 auto 20px;
+    }
+    .success-title { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 700; margin-bottom: 8px; color: var(--accent); }
+    .success-desc { font-size: 14px; color: var(--muted); margin-bottom: 24px; line-height: 1.6; }
+
+    .confirm-box {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 10px; padding: 16px; margin-bottom: 24px; text-align: left;
+    }
+    .confirm-label {
+      font-size: 10px; font-family: 'DM Mono', monospace;
+      color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 10px;
+    }
+    .confirm-row {
+      display: flex; justify-content: space-between;
+      padding: 6px 0; font-size: 13px; border-bottom: 1px solid var(--border);
+    }
+    .confirm-row:last-child { border-bottom: none; }
+    .confirm-key { color: var(--muted); font-family: 'DM Mono', monospace; font-size: 11px; }
+    .confirm-val { font-weight: 500; }
+
+    .grace-notice {
+      background: rgba(245,197,66,0.06); border: 1px solid rgba(245,197,66,0.2);
+      border-radius: 8px; padding: 12px 14px;
+      font-size: 11px; font-family: 'DM Mono', monospace; color: var(--yellow);
+      margin-bottom: 20px; line-height: 1.5;
+    }
+
+    .reset-btn {
+      padding: 10px 28px; border-radius: 8px;
+      border: 1px solid var(--border); background: var(--surface2); color: var(--text);
+      font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 600;
+      cursor: pointer; letter-spacing: 0.06em; text-transform: uppercase; transition: all 0.15s;
+    }
+    .reset-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+    .toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 300; }
+    .toast {
+      background: var(--surface2); border: 1px solid var(--border); border-radius: 8px;
+      padding: 12px 18px; font-size: 12px; font-family: 'DM Mono', monospace;
+      min-width: 220px; margin-top: 8px; animation: slideIn 0.2s ease;
+      display: flex; align-items: center; gap: 10px;
+    }
+    @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    .toast.success { border-left: 3px solid var(--green); }
+    .toast.error   { border-left: 3px solid var(--red); }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-mark">OB</div>
+    <div>
+      <div class="logo-text">DAASS</div>
+      <div class="logo-sub">Online Appointment Booking</div>
+    </div>
+  </div>
+  <nav class="nav-links">
+    <a href="index.html"    class="nav-link">Dashboard</a>
+    <a href="register.html" class="nav-link">Walk-In</a>
+    <a href="book.html"     class="nav-link active">Online Booking</a>
+  </nav>
+</header>
+
+<div class="page">
+  <div class="page-header">
+    <div class="page-tag">Patient Portal · Online</div>
+    <div class="page-title">Book an Appointment</div>
+    <div class="page-desc">Choose a time slot and describe your symptoms. Our scheduling system will assign your priority before you arrive.</div>
+  </div>
+
+  <div class="notice">
+    <span>⚠</span>
+    <span>You must arrive within <strong>10 minutes</strong> of your slot. Late or absent bookings will be automatically released to other patients.</span>
+  </div>
+
+  <div class="form-card">
+    <div class="form-card-header">
+      <div class="fch-dot"></div>
+      <div class="form-card-title">Appointment Details</div>
+    </div>
+
+    <div class="form-body" id="form-body">
+      <div class="form-grid">
+
+        <div class="form-row form-full">
+          <label>Full Name *</label>
+          <input id="name" type="text" placeholder="Your full name" />
+        </div>
+
+        <div class="form-row">
+          <label>Age *</label>
+          <input id="age" type="number" placeholder="Years" min="1" max="120" />
+        </div>
+
+        <div class="form-row">
+          <label>Phone *</label>
+          <input id="phone" type="tel" placeholder="Mobile number" />
+        </div>
+
+        <div class="form-row form-full">
+          <label>Primary Symptom *</label>
+          <select id="symptom">
+            <option value="" disabled selected>Select symptom category...</option>
+            <option value="chest_pain">🔴 Chest Pain / Breathing Difficulty</option>
+            <option value="trauma">🔴 Trauma / Injury / Accident</option>
+            <option value="high_fever">🟠 High Fever (above 103°F)</option>
+            <option value="pregnancy">🟠 Pregnancy Related</option>
+            <option value="fever_cold">🟡 Fever / Cold / Flu</option>
+            <option value="stomach">🟡 Abdominal Pain / Vomiting</option>
+            <option value="diabetes_bp">🟢 Diabetes / BP Follow-up</option>
+            <option value="routine">🟢 Routine Checkup</option>
+            <option value="other">⚪ Other</option>
+          </select>
+        </div>
+
+        <div class="form-row form-full">
+          <label>Pain Level (1 = none, 10 = severe)</label>
+          <input id="pain" type="number" min="1" max="10" placeholder="1 to 10" />
+        </div>
+
+        <div class="form-row form-full">
+          <label>Select Time Slot *</label>
+          <div class="slot-grid" id="slot-grid"></div>
+          <input type="hidden" id="selected-slot" />
+        </div>
+
+      </div>
+
+      <hr class="divider"/>
+      <button class="submit-btn" id="submit-btn" onclick="submitBooking()">Confirm Appointment</button>
+    </div>
+
+    <!-- SUCCESS -->
+    <div class="success-screen" id="success-screen">
+      <div class="success-icon">✓</div>
+      <div class="success-title">Appointment Confirmed</div>
+      <div class="success-desc">Your slot is reserved. Please arrive on time — the system will reassign your slot if you're more than 10 minutes late.</div>
+
+      <div class="confirm-box" id="confirm-box"></div>
+
+      <div class="grace-notice">
+        ⏱ Grace window active. Please arrive by your scheduled time.
+        Your slot ID is your reference at the reception desk.
+      </div>
+
+      <button class="reset-btn" onclick="resetForm()">Book Another</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toast-container"></div>
+
+<script>
+const API = 'http://localhost:3000/api';
+
+// ─── Generate time slots (9 AM – 5 PM) ────────────────────────────────────
+const SLOTS = [];
+for (let h = 9; h < 17; h++) {
+  SLOTS.push(`${h.toString().padStart(2,'0')}:00`);
+  SLOTS.push(`${h.toString().padStart(2,'0')}:30`);
+}
+
+function renderSlots() {
+  const grid = document.getElementById('slot-grid');
+  grid.innerHTML = '';
+  SLOTS.forEach(slot => {
+    const btn = document.createElement('div');
+    btn.className = 'slot-btn';
+    btn.textContent = formatSlot(slot);
+    btn.dataset.slot = slot;
+    btn.onclick = () => selectSlot(slot, btn);
+    grid.appendChild(btn);
+  });
+}
+
+function formatSlot(slot) {
+  const [h, m] = slot.split(':').map(Number);
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  const hour = h > 12 ? h - 12 : h;
+  return `${hour}:${m.toString().padStart(2,'0')} ${ampm}`;
+}
+
+function selectSlot(slot, btn) {
+  document.querySelectorAll('.slot-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  document.getElementById('selected-slot').value = slot;
+}
+
+renderSlots();
+
+// ─── Submit ────────────────────────────────────────────────────────────────
+async function submitBooking() {
+  const name    = document.getElementById('name').value.trim();
+  const age     = document.getElementById('age').value;
+  const phone   = document.getElementById('phone').value.trim();
+  const symptom = document.getElementById('symptom').value;
+  const pain    = document.getElementById('pain').value || 1;
+  const slot    = document.getElementById('selected-slot').value;
+
+  if (!name || !age || !phone || !symptom || !slot) {
+    showToast('Please complete all required fields and select a time slot', 'error');
+    return;
+  }
+
+  const btn = document.getElementById('submit-btn');
+  btn.disabled = true;
+  btn.textContent = 'Confirming...';
+
+  try {
+    const res = await fetch(`${API}/patients`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name, age: parseInt(age), phone, symptom,
+        pain: parseInt(pain), type: 'online',
+        appointmentSlot: slot,
+      }),
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Booking failed');
+
+    const p = data.patient;
+    const pLabels = { 1:'Emergency', 2:'Severe', 3:'Moderate', 4:'Mild' };
+
+    document.getElementById('confirm-box').innerHTML = `
+      <div class="confirm-label">Booking Confirmation</div>
+      <div class="confirm-row"><span class="confirm-key">Name</span><span class="confirm-val">${p.name}</span></div>
+      <div class="confirm-row"><span class="confirm-key">Time Slot</span><span class="confirm-val">${formatSlot(slot)}</span></div>
+      <div class="confirm-row"><span class="confirm-key">Priority</span><span class="confirm-val">P${p.priorityClass} — ${pLabels[p.priorityClass]}</span></div>
+      <div class="confirm-row"><span class="confirm-key">Est. Duration</span><span class="confirm-val">${p.estimatedTime} min</span></div>
+      <div class="confirm-row"><span class="confirm-key">Booking ID</span><span class="confirm-val" style="font-family:'DM Mono',monospace;font-size:11px">${p._id.slice(-8).toUpperCase()}</span></div>
+    `;
+
+    document.getElementById('form-body').classList.add('hide');
+    document.getElementById('success-screen').classList.add('show');
+
+  } catch (err) {
+    showToast(err.message, 'error');
+    btn.disabled = false;
+    btn.textContent = 'Confirm Appointment';
+  }
+}
+
+function resetForm() {
+  document.getElementById('form-body').classList.remove('hide');
+  document.getElementById('success-screen').classList.remove('show');
+  ['name','age','phone','pain'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('symptom').value = '';
+  document.getElementById('selected-slot').value = '';
+  document.querySelectorAll('.slot-btn').forEach(b => b.classList.remove('selected'));
+  document.getElementById('submit-btn').disabled = false;
+  document.getElementById('submit-btn').textContent = 'Confirm Appointment';
+}
+
+function showToast(msg, type = 'error') {
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.innerHTML = `<span>${type === 'success' ? '✓' : '✗'}</span><span>${msg}</span>`;
+  c.appendChild(t);
+  setTimeout(() => t.remove(), 3500);
+}
+</script>
+</body>
+</html>

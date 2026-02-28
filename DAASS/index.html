@@ -1,0 +1,597 @@
+
+Index · HTML
+Copy
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>DAASS — Doctor Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0a0e14; --surface: #111620; --surface2: #161d2b; --border: #1e2a3a;
+      --accent: #00d4ff; --accent2: #0097b8;
+      --green: #00e5a0; --yellow: #f5c542; --red: #ff4f5e; --orange: #ff8c42;
+      --text: #e8f0f8; --muted: #5a7090; --muted2: #3a5070;
+      --p1: #ff4f5e; --p2: #ff8c42; --p3: #f5c542; --p4: #00e5a0;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; }
+    body::before {
+      content: ''; position: fixed; inset: 0;
+      background-image: linear-gradient(var(--border) 1px, transparent 1px), linear-gradient(90deg, var(--border) 1px, transparent 1px);
+      background-size: 40px 40px; opacity: 0.25; pointer-events: none; z-index: 0;
+    }
+
+    header {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(10,14,20,0.92); backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 32px; height: 64px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .logo { display: flex; align-items: center; gap: 12px; }
+    .logo-mark {
+      width: 36px; height: 36px; background: var(--accent); border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Syne', sans-serif; font-weight: 800; font-size: 14px; color: var(--bg);
+    }
+    .logo-text { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 18px; letter-spacing: 0.08em; }
+    .logo-sub { font-size: 10px; color: var(--muted); font-family: 'DM Mono', monospace; }
+    .header-right { display: flex; align-items: center; gap: 16px; }
+    .live-badge { display: flex; align-items: center; gap: 6px; font-family: 'DM Mono', monospace; font-size: 11px; color: var(--green); letter-spacing: 0.1em; }
+    .live-dot { width: 7px; height: 7px; background: var(--green); border-radius: 50%; animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(1.3)} }
+    .clock { font-family: 'DM Mono', monospace; font-size: 13px; color: var(--muted); }
+    .nav-links { display: flex; gap: 8px; }
+    .nav-link {
+      padding: 7px 16px; border-radius: 7px;
+      font-size: 12px; font-family: 'DM Mono', monospace;
+      color: var(--muted); text-decoration: none;
+      border: 1px solid transparent; transition: all 0.15s;
+      letter-spacing: 0.06em; text-transform: uppercase;
+    }
+    .nav-link:hover { border-color: var(--border); color: var(--text); }
+    .nav-link.active { background: rgba(0,212,255,0.1); border-color: var(--accent); color: var(--accent); }
+
+    .main { position: relative; z-index: 1; max-width: 1400px; margin: 0 auto; padding: 24px 32px; }
+
+    /* STAT BAR */
+    .stat-bar { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 20px; }
+    .stat-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; padding: 16px 20px; position: relative; overflow: hidden; transition: border-color 0.2s;
+    }
+    .stat-card::after { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--accent); opacity: 0.5; }
+    .stat-card.red::after { background: var(--red); }
+    .stat-card.green::after { background: var(--green); }
+    .stat-card.yellow::after { background: var(--yellow); }
+    .stat-card.orange::after { background: var(--orange); }
+    .stat-label { font-size: 10px; font-family: 'DM Mono', monospace; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 8px; }
+    .stat-value { font-family: 'Syne', sans-serif; font-size: 28px; font-weight: 700; line-height: 1; transition: color 0.3s; }
+    .stat-sub { font-size: 11px; color: var(--muted); margin-top: 4px; }
+
+    /* OVERLOAD */
+    .overload-alert {
+      background: rgba(255,79,94,0.08); border: 1px solid rgba(255,79,94,0.3);
+      border-radius: 10px; padding: 14px 18px; margin-bottom: 16px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .overload-alert.hidden { display: none; }
+    .overload-icon { width: 32px; height: 32px; background: rgba(255,79,94,0.15); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+    .overload-title { font-weight: 600; color: var(--red); margin-bottom: 2px; font-size: 13px; }
+    .overload-desc { color: var(--muted); font-size: 11px; font-family: 'DM Mono', monospace; }
+
+    /* GRID */
+    .grid-2 { display: grid; grid-template-columns: 1fr 360px; gap: 16px; }
+
+    /* PANEL */
+    .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+    .panel-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+    .panel-title { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; }
+    .panel-count { font-family: 'DM Mono', monospace; font-size: 11px; background: var(--surface2); border: 1px solid var(--border); color: var(--muted); padding: 3px 10px; border-radius: 20px; }
+
+    .refresh-indicator { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+    .refresh-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--green); animation: pulse 1.5s infinite; }
+
+    /* QUEUE */
+    .queue-list { max-height: 540px; overflow-y: auto; }
+    .queue-list::-webkit-scrollbar { width: 4px; }
+    .queue-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+    .queue-item {
+      padding: 14px 20px; border-bottom: 1px solid var(--border);
+      display: grid; grid-template-columns: 36px 1fr auto;
+      gap: 14px; align-items: center; transition: background 0.15s; cursor: pointer;
+      animation: fadeIn 0.25s ease;
+    }
+    @keyframes fadeIn { from{opacity:0;transform:translateY(-6px)} to{opacity:1;transform:translateY(0)} }
+    .queue-item:last-child { border-bottom: none; }
+    .queue-item:hover { background: var(--surface2); }
+    .queue-item.active-row { background: rgba(0,212,255,0.04); border-left: 3px solid var(--accent); }
+
+    .queue-pos { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-family: 'DM Mono', monospace; font-size: 13px; font-weight: 500; }
+    .pos-p1{background:rgba(255,79,94,.15);color:var(--p1);border:1px solid rgba(255,79,94,.3)}
+    .pos-p2{background:rgba(255,140,66,.15);color:var(--p2);border:1px solid rgba(255,140,66,.3)}
+    .pos-p3{background:rgba(245,197,66,.15);color:var(--p3);border:1px solid rgba(245,197,66,.3)}
+    .pos-p4{background:rgba(0,229,160,.15);color:var(--p4);border:1px solid rgba(0,229,160,.3)}
+
+    .patient-name { font-size: 14px; font-weight: 500; }
+    .patient-meta { font-size: 11px; color: var(--muted); font-family: 'DM Mono', monospace; margin-top: 2px; }
+    .patient-right { text-align: right; }
+    .wait-time { font-family: 'DM Mono', monospace; font-size: 13px; font-weight: 500; color: var(--accent); }
+
+    .type-badge { display: inline-block; font-size: 9px; font-family: 'DM Mono', monospace; letter-spacing: 0.08em; padding: 2px 7px; border-radius: 4px; margin-top: 4px; text-transform: uppercase; }
+    .badge-online    { background:rgba(0,212,255,.1);   color:var(--accent); border:1px solid rgba(0,212,255,.2); }
+    .badge-walkin    { background:rgba(0,229,160,.1);   color:var(--green);  border:1px solid rgba(0,229,160,.2); }
+    .badge-emergency { background:rgba(255,79,94,.15);  color:var(--red);    border:1px solid rgba(255,79,94,.3); }
+
+    .priority-tag { font-size: 9px; font-family: 'DM Mono', monospace; letter-spacing: 0.08em; padding: 2px 6px; border-radius: 3px; text-transform: uppercase; margin-left: 6px; }
+    .tag-p1{background:rgba(255,79,94,.15);color:var(--p1)}
+    .tag-p2{background:rgba(255,140,66,.15);color:var(--p2)}
+    .tag-p3{background:rgba(245,197,66,.15);color:var(--p3)}
+    .tag-p4{background:rgba(0,229,160,.15);color:var(--p4)}
+
+    /* RIGHT COL */
+    .right-col { display: flex; flex-direction: column; gap: 16px; }
+
+    /* CAPACITY */
+    .capacity-body { padding: 16px 20px; }
+    .cap-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .cap-label { font-size: 12px; color: var(--muted); }
+    .cap-value { font-family: 'DM Mono', monospace; font-size: 13px; font-weight: 500; }
+    .progress-bar { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; margin-bottom: 16px; }
+    .progress-fill { height: 100%; border-radius: 3px; transition: width 0.5s ease, background 0.3s; }
+
+    .buffer-row { display: flex; align-items: center; gap: 14px; }
+    .buffer-ring-wrap { position: relative; width: 64px; height: 64px; flex-shrink: 0; }
+    .buffer-ring-wrap svg { transform: rotate(-90deg); }
+    .ring-track { fill: none; stroke: var(--border); stroke-width: 6; }
+    .ring-fill { fill: none; stroke: var(--green); stroke-width: 6; stroke-linecap: round; transition: stroke-dashoffset 0.6s ease, stroke 0.3s; }
+    .ring-label { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    .ring-pct { font-family: 'DM Mono', monospace; font-size: 13px; font-weight: 500; color: var(--green); line-height: 1; }
+    .ring-sub { font-size: 8px; color: var(--muted); text-transform: uppercase; margin-top: 1px; }
+    .buffer-info { flex: 1; }
+    .buffer-title { font-size: 12px; font-weight: 500; margin-bottom: 4px; }
+    .buffer-detail { font-size: 11px; color: var(--muted); font-family: 'DM Mono', monospace; }
+
+    /* METRICS */
+    .metrics-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 16px; }
+    .metric-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
+    .metric-label { font-size: 10px; font-family: 'DM Mono', monospace; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 6px; }
+    .metric-value { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 700; }
+    .metric-sub { font-size: 10px; font-family: 'DM Mono', monospace; color: var(--muted); margin-top: 2px; }
+
+    /* EMPTY */
+    .empty-state { padding: 48px 20px; text-align: center; color: var(--muted); }
+    .empty-icon { font-size: 32px; margin-bottom: 12px; opacity: 0.3; }
+    .empty-text { font-size: 13px; }
+
+    /* MODAL */
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(4px); z-index: 200;
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none; transition: opacity 0.2s;
+    }
+    .modal-overlay.open { opacity: 1; pointer-events: all; }
+    .modal {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 16px; padding: 28px; width: 420px; max-width: 90vw;
+      transform: translateY(20px); transition: transform 0.2s;
+    }
+    .modal-overlay.open .modal { transform: translateY(0); }
+    .modal-title { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+    .modal-id { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); margin-bottom: 16px; letter-spacing: 0.1em; }
+    .modal-detail-row { display: flex; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+    .modal-detail-row:last-of-type { border-bottom: none; }
+    .modal-key { color: var(--muted); font-family: 'DM Mono', monospace; font-size: 11px; }
+    .modal-val { font-weight: 500; }
+    .modal-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
+    .modal-btn {
+      padding: 11px; border-radius: 8px; border: 1px solid var(--border);
+      background: var(--surface2); color: var(--text);
+      font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 600;
+      cursor: pointer; transition: all 0.15s; letter-spacing: 0.06em; text-transform: uppercase;
+    }
+    .modal-btn.primary { background: var(--green); border-color: var(--green); color: var(--bg); }
+    .modal-btn.primary:hover { background: #00c98a; }
+    .modal-btn.warn { background: rgba(255,79,94,0.1); border-color: var(--red); color: var(--red); }
+    .modal-btn.warn:hover { background: rgba(255,79,94,0.2); }
+    .modal-btn:hover { border-color: var(--accent2); }
+
+    /* TOAST */
+    .toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 300; display: flex; flex-direction: column; gap: 8px; }
+    .toast {
+      background: var(--surface2); border: 1px solid var(--border); border-radius: 8px;
+      padding: 12px 18px; font-size: 12px; font-family: 'DM Mono', monospace;
+      min-width: 240px; animation: slideIn 0.2s ease; display: flex; align-items: center; gap: 10px;
+    }
+    @keyframes slideIn { from{transform:translateX(100%);opacity:0} to{transform:translateX(0);opacity:1} }
+    .toast.success { border-left: 3px solid var(--green); }
+    .toast.error   { border-left: 3px solid var(--red);   }
+    .toast.warn    { border-left: 3px solid var(--yellow); }
+    .toast.info    { border-left: 3px solid var(--accent); }
+
+    @media(max-width:1024px){ .grid-2{grid-template-columns:1fr} .stat-bar{grid-template-columns:repeat(3,1fr)} }
+    @media(max-width:600px) { .main{padding:16px} .stat-bar{grid-template-columns:repeat(2,1fr)} header{padding:0 16px} }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-mark">DA</div>
+    <div>
+      <div class="logo-text">DAASS</div>
+      <div class="logo-sub">Dynamic Adaptive Appointment Scheduling System</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <nav class="nav-links">
+      <a href="index.html"    class="nav-link active">Dashboard</a>
+      <a href="register.html" class="nav-link">Walk-In</a>
+      <a href="book.html"     class="nav-link">Online Booking</a>
+    </nav>
+    <div class="live-badge"><div class="live-dot"></div>LIVE</div>
+    <div class="clock" id="clock">--:--:--</div>
+  </div>
+</header>
+
+<div class="main">
+  <!-- STAT BAR -->
+  <div class="stat-bar">
+    <div class="stat-card">
+      <div class="stat-label">In Queue</div>
+      <div class="stat-value" id="s-queue" style="color:var(--accent)">—</div>
+      <div class="stat-sub">Active patients</div>
+    </div>
+    <div class="stat-card red">
+      <div class="stat-label">Emergency</div>
+      <div class="stat-value" id="s-emg" style="color:var(--red)">—</div>
+      <div class="stat-sub">P1 priority</div>
+    </div>
+    <div class="stat-card green">
+      <div class="stat-label">Served Today</div>
+      <div class="stat-value" id="s-served" style="color:var(--green)">—</div>
+      <div class="stat-sub">Completed</div>
+    </div>
+    <div class="stat-card yellow">
+      <div class="stat-label">Avg Wait</div>
+      <div class="stat-value" id="s-wait" style="color:var(--yellow)">—</div>
+      <div class="stat-sub">Minutes</div>
+    </div>
+    <div class="stat-card orange">
+      <div class="stat-label">No-Shows</div>
+      <div class="stat-value" id="s-noshow" style="color:var(--orange)">—</div>
+      <div class="stat-sub">Today</div>
+    </div>
+  </div>
+
+  <!-- OVERLOAD -->
+  <div class="overload-alert hidden" id="overload-alert">
+    <div class="overload-icon">⚠</div>
+    <div>
+      <div class="overload-title">CAPACITY OVERLOAD DETECTED</div>
+      <div class="overload-desc" id="overload-desc">Demand exceeds safe capacity.</div>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <!-- QUEUE -->
+    <div>
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">Live Queue</span>
+          <div style="display:flex;gap:10px;align-items:center">
+            <div class="refresh-indicator"><div class="refresh-dot"></div><span id="refresh-label">refreshing...</span></div>
+            <span class="panel-count" id="queue-count">— patients</span>
+          </div>
+        </div>
+        <div class="queue-list" id="queue-list">
+          <div class="empty-state">
+            <div class="empty-icon">⟳</div>
+            <div class="empty-text">Connecting to server...</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="metrics-grid">
+        <div class="metric-card">
+          <div class="metric-label">Doctor Utilization</div>
+          <div class="metric-value" id="m-util" style="color:var(--green)">—</div>
+          <div class="metric-sub" id="m-util-s">No data</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Buffer Remaining</div>
+          <div class="metric-value" id="m-buf" style="color:var(--accent)">—</div>
+          <div class="metric-sub" id="m-buf-s">Protected time</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Capacity Used</div>
+          <div class="metric-value" id="m-cap" style="color:var(--yellow)">—</div>
+          <div class="metric-sub">Of 408 min/day</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT -->
+    <div class="right-col">
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">Capacity Monitor</span>
+        </div>
+        <div class="capacity-body">
+          <div class="cap-row">
+            <span class="cap-label">Scheduled Load</span>
+            <span class="cap-value" id="cap-text" style="color:var(--accent)">— / 408 min</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" id="cap-bar" style="width:0%;background:var(--green)"></div>
+          </div>
+          <div class="buffer-row">
+            <div class="buffer-ring-wrap">
+              <svg width="64" height="64" viewBox="0 0 64 64">
+                <circle class="ring-track" cx="32" cy="32" r="27"/>
+                <circle class="ring-fill" id="ring-fill" cx="32" cy="32" r="27" stroke-dasharray="169.6" stroke-dashoffset="169.6"/>
+              </svg>
+              <div class="ring-label">
+                <span class="ring-pct" id="ring-pct">—</span>
+                <span class="ring-sub">Buffer</span>
+              </div>
+            </div>
+            <div class="buffer-info">
+              <div class="buffer-title">Dynamic Buffer Pool</div>
+              <div class="buffer-detail" id="buf-detail">Loading...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- QUICK ACTIONS -->
+      <div class="panel">
+        <div class="panel-header"><span class="panel-title">Quick Actions</span></div>
+        <div style="padding:16px;display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <a href="register.html" style="text-decoration:none">
+            <button style="width:100%;padding:11px;border-radius:8px;border:1px solid var(--green);background:rgba(0,229,160,0.08);color:var(--green);font-family:'DM Mono',monospace;font-size:11px;cursor:pointer;letter-spacing:0.06em;text-transform:uppercase;transition:all 0.15s">+ Walk-In</button>
+          </a>
+          <a href="book.html" style="text-decoration:none">
+            <button style="width:100%;padding:11px;border-radius:8px;border:1px solid var(--accent);background:rgba(0,212,255,0.08);color:var(--accent);font-family:'DM Mono',monospace;font-size:11px;cursor:pointer;letter-spacing:0.06em;text-transform:uppercase;transition:all 0.15s">+ Online</button>
+          </a>
+          <button onclick="fetchQueue()" style="grid-column:1/-1;width:100%;padding:11px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--muted);font-family:'DM Mono',monospace;font-size:11px;cursor:pointer;letter-spacing:0.06em;text-transform:uppercase;transition:all 0.15s">↻ Force Refresh</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal-overlay" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-title" id="modal-name">—</div>
+    <div class="modal-id" id="modal-id">ID: —</div>
+    <div id="modal-badges" style="margin-bottom:14px"></div>
+    <div id="modal-details"></div>
+    <div class="modal-actions">
+      <button class="modal-btn primary" onclick="doAction('complete')">✓ Complete</button>
+      <button class="modal-btn warn"    onclick="doAction('noshow')">✗ No-Show</button>
+      <button class="modal-btn"         onclick="doAction('emergency')">⚡ Emergency</button>
+      <button class="modal-btn"         onclick="closeModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toast-container"></div>
+
+<script>
+const API = 'http://localhost:3000/api';
+const REFRESH_INTERVAL = 5000; // 5 seconds
+let selectedPatient = null;
+let refreshTimer = null;
+let countdown = 5;
+
+const SYMPTOM_LABELS = {
+  chest_pain:'Chest Pain', trauma:'Trauma', high_fever:'High Fever',
+  pregnancy:'Pregnancy', fever_cold:'Fever/Cold', stomach:'Stomach',
+  diabetes_bp:'Diabetes/BP', routine:'Routine', other:'Other'
+};
+
+// ─── FETCH QUEUE ──────────────────────────────────────────────────────────
+async function fetchQueue() {
+  try {
+    const res  = await fetch(`${API}/patients/queue`);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error);
+
+    renderStats(data.stats);
+    renderQueue(data.queue);
+    renderCapacity(data.capacity);
+    countdown = 5;
+  } catch (err) {
+    document.getElementById('refresh-label').textContent = 'offline ✗';
+    console.error('Fetch error:', err.message);
+  }
+}
+
+// ─── RENDER STATS ─────────────────────────────────────────────────────────
+function renderStats(stats) {
+  document.getElementById('s-queue').textContent   = stats.inQueue;
+  document.getElementById('s-emg').textContent     = stats.emergency;
+  document.getElementById('s-served').textContent  = stats.served;
+  document.getElementById('s-wait').innerHTML      = `${stats.avgWait}<span style="font-size:14px;font-weight:400">m</span>`;
+  document.getElementById('s-noshow').textContent  = stats.noShows;
+}
+
+// ─── RENDER QUEUE ─────────────────────────────────────────────────────────
+function renderQueue(queue) {
+  const list = document.getElementById('queue-list');
+  document.getElementById('queue-count').textContent = `${queue.length} patient${queue.length !== 1 ? 's' : ''}`;
+
+  if (!queue.length) {
+    list.innerHTML = `<div class="empty-state"><div class="empty-icon">✓</div><div class="empty-text">Queue is clear.<br>No waiting patients.</div></div>`;
+    return;
+  }
+
+  list.innerHTML = '';
+  queue.forEach((p, i) => {
+    const posClass   = `pos-p${p.priorityClass}`;
+    const badgeClass = {walkin:'badge-walkin', online:'badge-online', emergency:'badge-emergency'}[p.type];
+    const badgeLabel = {walkin:'Walk-in', online:'Online', emergency:'Emergency'}[p.type];
+
+    const item = document.createElement('div');
+    item.className = `queue-item${i === 0 ? ' active-row' : ''}`;
+    item.innerHTML = `
+      <div class="${posClass} queue-pos">${p.position}</div>
+      <div>
+        <div class="patient-name">${p.name}<span class="priority-tag tag-p${p.priorityClass}">P${p.priorityClass}</span></div>
+        <div class="patient-meta">${p.age}y · ${SYMPTOM_LABELS[p.symptom]||p.symptom} · Pain ${p.pain}/10</div>
+      </div>
+      <div class="patient-right">
+        <div class="wait-time">${p.waitMins === 0 ? 'Now' : p.waitMins + 'm'}</div>
+        <div class="${badgeClass} type-badge">${badgeLabel}</div>
+      </div>`;
+    item.onclick = () => openModal(p);
+    list.appendChild(item);
+  });
+}
+
+// ─── RENDER CAPACITY ──────────────────────────────────────────────────────
+function renderCapacity(cap) {
+  const pct = Math.min(cap.capacityPct, 100);
+
+  document.getElementById('cap-text').textContent = `${cap.totalUsed} / ${cap.safeCapacity} min`;
+  const bar = document.getElementById('cap-bar');
+  bar.style.width = `${pct}%`;
+  bar.style.background = pct < 70 ? 'var(--green)' : pct < 90 ? 'var(--yellow)' : 'var(--red)';
+
+  const bPct = cap.bufferPct;
+  const offset = 169.6 * (1 - bPct / 100);
+  const ring = document.getElementById('ring-fill');
+  ring.style.strokeDashoffset = offset;
+  ring.style.stroke = bPct > 60 ? 'var(--green)' : bPct > 30 ? 'var(--yellow)' : 'var(--red)';
+  document.getElementById('ring-pct').textContent = bPct + '%';
+  document.getElementById('buf-detail').innerHTML = `${cap.bufferLeft} min remaining<br>${cap.bufferPool - cap.bufferLeft} min consumed`;
+
+  // Metrics
+  document.getElementById('m-util').textContent = cap.utilizationPct ? cap.utilizationPct + '%' : '—';
+  document.getElementById('m-util-s').textContent = cap.servedMin ? `${cap.servedMin} min active` : 'No data';
+  document.getElementById('m-buf').textContent = cap.bufferLeft + 'm';
+  document.getElementById('m-buf-s').textContent = `${bPct}% buffer left`;
+  document.getElementById('m-cap').textContent = pct + '%';
+
+  // Overload
+  const alert = document.getElementById('overload-alert');
+  if (cap.overload) {
+    document.getElementById('overload-desc').textContent =
+      `Demand exceeds capacity by ${cap.overloadMins} min. Restrict intake or redirect non-urgent cases.`;
+    alert.classList.remove('hidden');
+  } else {
+    alert.classList.add('hidden');
+  }
+}
+
+// ─── MODAL ────────────────────────────────────────────────────────────────
+function openModal(p) {
+  selectedPatient = p;
+  document.getElementById('modal-name').textContent = p.name;
+  document.getElementById('modal-id').textContent = `ID: ${p._id.slice(-8).toUpperCase()}`;
+
+  const pLabels = {1:'Emergency',2:'Severe',3:'Moderate',4:'Mild'};
+  const bClass  = {walkin:'badge-walkin',online:'badge-online',emergency:'badge-emergency'}[p.type];
+  const bLabel  = {walkin:'Walk-In',online:'Online',emergency:'Emergency'}[p.type];
+
+  document.getElementById('modal-badges').innerHTML = `
+    <span class="${bClass} type-badge">${bLabel}</span>
+    <span class="priority-tag tag-p${p.priorityClass}" style="font-size:11px;padding:3px 9px;margin-left:6px">P${p.priorityClass} — ${pLabels[p.priorityClass]}</span>`;
+
+  document.getElementById('modal-details').innerHTML = `
+    <div class="modal-detail-row"><span class="modal-key">Age</span><span class="modal-val">${p.age} yrs</span></div>
+    <div class="modal-detail-row"><span class="modal-key">Symptom</span><span class="modal-val">${SYMPTOM_LABELS[p.symptom]||p.symptom}</span></div>
+    <div class="modal-detail-row"><span class="modal-key">Pain Level</span><span class="modal-val">${p.pain}/10</span></div>
+    <div class="modal-detail-row"><span class="modal-key">Urgency Score</span><span class="modal-val" style="color:var(--accent)">${p.urgencyScore}/100</span></div>
+    <div class="modal-detail-row"><span class="modal-key">Est. Time</span><span class="modal-val">${p.estimatedTime} min</span></div>
+    <div class="modal-detail-row"><span class="modal-key">Wait Time</span><span class="modal-val" style="color:var(--yellow)">${p.waitMins === 0 ? 'Next (Now)' : p.waitMins + ' min'}</span></div>
+    ${p.appointmentSlot ? `<div class="modal-detail-row"><span class="modal-key">Slot</span><span class="modal-val">${p.appointmentSlot}</span></div>` : ''}`;
+
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('modal-overlay').classList.remove('open');
+  selectedPatient = null;
+}
+
+// ─── DOCTOR ACTIONS ───────────────────────────────────────────────────────
+async function doAction(action) {
+  if (!selectedPatient) return;
+  const id = selectedPatient._id;
+  const name = selectedPatient.name;
+
+  const endpoints = {
+    complete:  `${API}/patients/${id}/complete`,
+    noshow:    `${API}/patients/${id}/noshow`,
+    emergency: `${API}/patients/${id}/emergency`,
+  };
+
+  try {
+    const res = await fetch(endpoints[action], { method: 'PATCH' });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error);
+
+    const msgs = {
+      complete:  `${name} — consultation complete`,
+      noshow:    `${name} — marked as no-show`,
+      emergency: `${name} — upgraded to emergency`,
+    };
+    const types = { complete:'success', noshow:'warn', emergency:'error' };
+
+    showToast(msgs[action], types[action]);
+    closeModal();
+    fetchQueue();
+  } catch (err) {
+    showToast(err.message, 'error');
+  }
+}
+
+// ─── COUNTDOWN REFRESH ────────────────────────────────────────────────────
+function startRefreshLoop() {
+  fetchQueue();
+  refreshTimer = setInterval(() => {
+    countdown--;
+    document.getElementById('refresh-label').textContent = `next in ${countdown}s`;
+    if (countdown <= 0) {
+      fetchQueue();
+      countdown = 5;
+    }
+  }, 1000);
+}
+
+// ─── CLOCK ────────────────────────────────────────────────────────────────
+function updateClock() {
+  document.getElementById('clock').textContent =
+    new Date().toLocaleTimeString('en-IN', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// ─── TOAST ────────────────────────────────────────────────────────────────
+function showToast(msg, type = 'info') {
+  const icons = {success:'✓', error:'✗', warn:'⚠', info:'ℹ'};
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.innerHTML = `<span>${icons[type]}</span><span>${msg}</span>`;
+  c.appendChild(t);
+  setTimeout(() => t.remove(), 3500);
+}
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+// ─── START ────────────────────────────────────────────────────────────────
+startRefreshLoop();
+</script>
+</body>
+</html>
