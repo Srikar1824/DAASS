@@ -1,4 +1,5 @@
-**Doctor Adaptive Appointment Scheduling System:**
+**Doctor Adaptive Appointment Scheduling System(DAASS)**
+
 DAASS is a doctor-aware, adaptive scheduling system that dynamically optimizes patient flow in primary health centers by intelligently managing online bookings, walk-ins, emergencies, and real-time capacity constraints.
 
 **1.Problem Statement:**
