@@ -186,7 +186,10 @@ const SYMPTOM_LABELS = {
   pregnancy:'Pregnancy', fever_cold:'Fever/Cold', stomach:'Stomach',
   diabetes_bp:'Diabetes/BP', routine:'Routine', other:'Other'
 };
-
+const API =
+  window.location.hostname === "localhost"
+    ? "http://localhost:5000/api"
+    : "https://YOUR-RENDER-URL.onrender.com/api";
 
 async function fetchQueue() {
   try {
