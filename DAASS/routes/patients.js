@@ -1,24 +1,22 @@
 import express from 'express';
-import Patient from '../models/Patient.js';
+import Patient from '../models/Patient.js';  // defines the patient scheme //
 import {
   buildOptimizedQueue,
   getCapacityReport,
-  computeUrgencyScore,
+  computeUrgencyScore,     // getting logic from Schedulingservice //
   estimateConsultTime,
   getPriorityClass
 } from '../Schedulingservice.js';
 
 const router = express.Router();
 
-/* ─────────────────────────────────────────────
-   POST → Add New Patient
-────────────────────────────────────────────── */
+
 router.post('/', async (req, res) => {
   try {
     const { name, age, phone, symptom, pain, type } = req.body;
 
     const urgencyScore  = computeUrgencyScore(req.body);
-    const estimatedTime = estimateConsultTime(req.body);
+    const estimatedTime = estimateConsultTime(req.body);    // registers new patients and enriches their data //
     const priorityClass = getPriorityClass(urgencyScore);
 
     const patient = await Patient.create({
@@ -72,9 +70,7 @@ router.get('/queue', async (req, res) => {
 });
 
 
-/* ─────────────────────────────────────────────
-   PATCH → Mark Complete
-────────────────────────────────────────────── */
+
 router.patch('/:id/complete', async (req, res) => {
   try {
     const patient = await Patient.findByIdAndUpdate(
@@ -93,9 +89,7 @@ router.patch('/:id/complete', async (req, res) => {
 });
 
 
-/* ─────────────────────────────────────────────
-   PATCH → Mark No-Show
-────────────────────────────────────────────── */
+
 router.patch('/:id/noshow', async (req, res) => {
   try {
     const patient = await Patient.findByIdAndUpdate(
@@ -114,9 +108,6 @@ router.patch('/:id/noshow', async (req, res) => {
 });
 
 
-/* ─────────────────────────────────────────────
-   PATCH → Upgrade to Emergency
-────────────────────────────────────────────── */
 router.patch('/:id/emergency', async (req, res) => {
   try {
     const patient = await Patient.findById(req.params.id);

@@ -1,18 +1,13 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// DAASS Scheduling Engine
-// Core brain: priority scoring, time estimation, capacity management
-// ─────────────────────────────────────────────────────────────────────────────
-
-const TOTAL_MINUTES   = 480;                                       // 8hr day
+const TOTAL_MINUTES   = 480;                                       // 8hr day //
 const BUFFER_PCT      = 0.15;
-const SAFE_CAPACITY   = Math.floor(TOTAL_MINUTES * (1 - BUFFER_PCT)); // 408 min
-const BUFFER_POOL     = TOTAL_MINUTES - SAFE_CAPACITY;               // 72 min
+const SAFE_CAPACITY   = Math.floor(TOTAL_MINUTES * (1 - BUFFER_PCT)); // 408 min //
+const BUFFER_POOL     = TOTAL_MINUTES - SAFE_CAPACITY;               // 72 min as buffer //
 
-// Symptom → { base priority class, base consultation time (min) }
+
 const SYMPTOM_MAP = {
   chest_pain:  { priority: 1, time: 12 },
   trauma:      { priority: 1, time: 15 },
-  high_fever:  { priority: 2, time: 10 },
+  high_fever:  { priority: 2, time: 10 }, // priority and expected time for symptoms //
   pregnancy:   { priority: 2, time: 12 },
   fever_cold:  { priority: 3, time: 7  },
   stomach:     { priority: 3, time: 8  },
@@ -21,59 +16,58 @@ const SYMPTOM_MAP = {
   other:       { priority: 3, time: 7  },
 };
 
-// ─── Urgency Score (0–100, higher = more urgent) ──────────────────────────────
+
 export function computeUrgencyScore(patient) {
-  const s = SYMPTOM_MAP[patient.symptom] || { priority: 3, time: 7 };
+  const s = SYMPTOM_MAP[patient.symptom] || { priority: 3, time: 7 }; // base score from symptom priority //
   let score = 0;
 
-  // Symptom-based priority weight (P1=100pts base, P4=25pts base)
+  
   score += (5 - s.priority) * 25;
 
-  // Emergency type boost
-  if (patient.type === 'emergency') score += 50;
+  
+  if (patient.type === 'emergency') score += 50; // in - case of emergency //
 
-  // Age risk (elderly & very young are higher risk)
+  
   const age = parseInt(patient.age);
-  if (age >= 65 || age <= 5) score += 15;
+  if (age >= 65 || age <= 5) score += 15; //age factor //
   else if (age >= 50)        score += 8;
 
-  // Pain severity contribution
+  
   const pain = parseInt(patient.pain) || 1;
-  score += pain * 2;
+  score += pain * 2;       // pain factor //
 
   return Math.min(score, 100);
 }
 
-// ─── Estimated Consultation Time ──────────────────────────────────────────────
+
 export function estimateConsultTime(patient) {
   const s = SYMPTOM_MAP[patient.symptom] || { priority: 3, time: 7 };
-  let t = s.time;
+  let t = s.time;       // estimated time //
 
   const age = parseInt(patient.age);
-  if (age >= 65 || age <= 5) t += 3;   // elderly/child need more time
+  if (age >= 65 || age <= 5) t += 3;   
   if (patient.type === 'emergency') t += 3;
 
   const pain = parseInt(patient.pain) || 1;
-  if (pain >= 8) t += 2;               // severe pain = more complex
+  if (pain >= 8) t += 2;               
 
   return t;
 }
 
-// ─── Priority Class from score ────────────────────────────────────────────────
+
 export function getPriorityClass(score) {
-  if (score >= 70) return 1;  // Emergency
-  if (score >= 50) return 2;  // Severe
-  if (score >= 30) return 3;  // Moderate
-  return 4;                   // Mild
+  if (score >= 70) return 1; 
+  if (score >= 50) return 2;   // priority class based on urgency score //
+  if (score >= 30) return 3;  
+  return 4;                   
 }
 
-// ─── Sort + annotate queue ────────────────────────────────────────────────────
-// Takes array of patient docs, returns sorted with waitMins & position added
+
 export function buildOptimizedQueue(patients) {
-  // Sort: higher urgency first, then earlier arrival
+  
   const sorted = [...patients].sort((a, b) => {
     if (b.urgencyScore !== a.urgencyScore) return b.urgencyScore - a.urgencyScore;
-    return new Date(a.arrivalTime) - new Date(b.arrivalTime);
+    return new Date(a.arrivalTime) - new Date(b.arrivalTime);  // sort by urgency score, then arrival time //
   });
 
   let elapsed = 0;
@@ -88,13 +82,13 @@ export function buildOptimizedQueue(patients) {
   });
 }
 
-// ─── Capacity Report ──────────────────────────────────────────────────────────
+
 export function getCapacityReport(waitingPatients, completedPatients) {
   const scheduledMin  = waitingPatients.reduce((s, p) => s + p.estimatedTime, 0);
   const servedMin     = completedPatients.reduce((s, p) => s + p.estimatedTime, 0);
   const totalUsed     = scheduledMin + servedMin;
   const bufferUsed    = Math.max(0, totalUsed - SAFE_CAPACITY);
-  const bufferLeft    = Math.max(0, BUFFER_POOL - bufferUsed);
+  const bufferLeft    = Math.max(0, BUFFER_POOL - bufferUsed);   // reports for doctor //
   const overload      = totalUsed > SAFE_CAPACITY + BUFFER_POOL;
   const overloadMins  = Math.max(0, totalUsed - (SAFE_CAPACITY + BUFFER_POOL));
 

@@ -187,14 +187,14 @@ const SYMPTOM_LABELS = {
   diabetes_bp:'Diabetes/BP', routine:'Routine', other:'Other'
 };
 
-// ─── FETCH QUEUE ──────────────────────────────────────────────────────────
+
 async function fetchQueue() {
   try {
     const res  = await fetch(`${API}/patients/queue`);
     const data = await res.json();
     if (!res.ok) throw new Error(data.error);
 
-    renderStats(data.stats);
+    renderStats(data.stats);       // fetches the latest queue from API and updates in the dashboard //
     renderQueue(data.queue);
     renderCapacity(data.capacity);
     countdown = 5;
@@ -204,7 +204,7 @@ async function fetchQueue() {
   }
 }
 
-// ─── RENDER STATS ─────────────────────────────────────────────────────────
+
 function renderStats(stats) {
   document.getElementById('s-queue').textContent   = stats.inQueue;
   document.getElementById('s-emg').textContent     = stats.emergency;
@@ -213,7 +213,7 @@ function renderStats(stats) {
   document.getElementById('s-noshow').textContent  = stats.noShows;
 }
 
-// ─── RENDER QUEUE ─────────────────────────────────────────────────────────
+
 function renderQueue(queue) {
   const list = document.getElementById('queue-list');
   document.getElementById('queue-count').textContent = `${queue.length} patient${queue.length !== 1 ? 's' : ''}`;
@@ -246,7 +246,7 @@ function renderQueue(queue) {
   });
 }
 
-// ─── RENDER CAPACITY ──────────────────────────────────────────────────────
+
 function renderCapacity(cap) {
   const pct = Math.min(cap.capacityPct, 100);
 
@@ -263,14 +263,14 @@ function renderCapacity(cap) {
   document.getElementById('ring-pct').textContent = bPct + '%';
   document.getElementById('buf-detail').innerHTML = `${cap.bufferLeft} min remaining<br>${cap.bufferPool - cap.bufferLeft} min consumed`;
 
-  // Metrics
+  
   document.getElementById('m-util').textContent = cap.utilizationPct ? cap.utilizationPct + '%' : '—';
   document.getElementById('m-util-s').textContent = cap.servedMin ? `${cap.servedMin} min active` : 'No data';
   document.getElementById('m-buf').textContent = cap.bufferLeft + 'm';
   document.getElementById('m-buf-s').textContent = `${bPct}% buffer left`;
   document.getElementById('m-cap').textContent = pct + '%';
 
-  // Overload
+  
   const alert = document.getElementById('overload-alert');
   if (cap.overload) {
     document.getElementById('overload-desc').textContent =
@@ -281,7 +281,7 @@ function renderCapacity(cap) {
   }
 }
 
-// ─── MODAL ────────────────────────────────────────────────────────────────
+
 function openModal(p) {
   selectedPatient = p;
   document.getElementById('modal-name').textContent = p.name;
@@ -291,7 +291,7 @@ function openModal(p) {
   const bClass  = {walkin:'badge-walkin',online:'badge-online',emergency:'badge-emergency'}[p.type];
   const bLabel  = {walkin:'Walk-In',online:'Online',emergency:'Emergency'}[p.type];
 
-  document.getElementById('modal-badges').innerHTML = `
+  document.getElementById('modal-badges').innerHTML = `          // dynamically renders a patient details  //
     <span class="${bClass} type-badge">${bLabel}</span>
     <span class="priority-tag tag-p${p.priorityClass}" style="font-size:11px;padding:3px 9px;margin-left:6px">P${p.priorityClass} — ${pLabels[p.priorityClass]}</span>`;
 
@@ -312,7 +312,7 @@ function closeModal() {
   selectedPatient = null;
 }
 
-// ─── DOCTOR ACTIONS ───────────────────────────────────────────────────────
+
 async function doAction(action) {
   if (!selectedPatient) return;
   const id = selectedPatient._id;
@@ -320,7 +320,7 @@ async function doAction(action) {
 
   const endpoints = {
     complete:  `${API}/patients/${id}/complete`,
-    noshow:    `${API}/patients/${id}/noshow`,
+    noshow:    `${API}/patients/${id}/noshow`,      // doctor's actions to update patient status //
     emergency: `${API}/patients/${id}/emergency`,
   };
 
@@ -344,11 +344,11 @@ async function doAction(action) {
   }
 }
 
-// ─── COUNTDOWN REFRESH ────────────────────────────────────────────────────
+
 function startRefreshLoop() {
   fetchQueue();
   refreshTimer = setInterval(() => {
-    countdown--;
+    countdown--;                                     // countdown for refreshing the queue //
     document.getElementById('refresh-label').textContent = `next in ${countdown}s`;
     if (countdown <= 0) {
       fetchQueue();
@@ -357,20 +357,20 @@ function startRefreshLoop() {
   }, 1000);
 }
 
-// ─── CLOCK ────────────────────────────────────────────────────────────────
+
 function updateClock() {
   document.getElementById('clock').textContent =
-    new Date().toLocaleTimeString('en-IN', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+    new Date().toLocaleTimeString('en-IN', {hour:'2-digit', minute:'2-digit', second:'2-digit'});  // clock //
 }
 setInterval(updateClock, 1000);
 updateClock();
 
-// ─── TOAST ────────────────────────────────────────────────────────────────
+
 function showToast(msg, type = 'info') {
   const icons = {success:'✓', error:'✗', warn:'⚠', info:'ℹ'};
   const c = document.getElementById('toast-container');
   const t = document.createElement('div');
-  t.className = `toast ${type}`;
+  t.className = `toast ${type}`;    // shows popup messages for actions and errors //
   t.innerHTML = `<span>${icons[type]}</span><span>${msg}</span>`;
   c.appendChild(t);
   setTimeout(() => t.remove(), 3500);
@@ -378,7 +378,7 @@ function showToast(msg, type = 'info') {
 
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
 
-// ─── START ────────────────────────────────────────────────────────────────
+
 startRefreshLoop();
 </script>
 </body>
