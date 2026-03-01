@@ -148,3 +148,5 @@ Instead of fixed time slots and manual rescheduling, the system dynamically prio
 **Architecture Diagram:**  <img width="758" height="514" alt="image" src="https://github.com/user-attachments/assets/6b149859-0ae4-4e87-91d1-c09f31de0248" />
 
 																   -
+Google Drive Link for presentation-https://drive.google.com/file/d/1HMH3UghWqh0qNnlgyVeQEWB0iFc1jjiP/view
+Google Drive Link for Demo Video-https://drive.google.com/file/d/197EF1OR7oCxulRHddS_gFJSlOdWVXknC/view?usp=sharing
