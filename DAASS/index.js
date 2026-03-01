@@ -22,7 +22,7 @@ app.use(cors({
 
 app.use(express.json());
 
-// Serve static files
+// Serve static files (optional)
 app.use(express.static(__dirname));
 
 // ─── Routes ────────────────────────────────
@@ -31,12 +31,12 @@ app.use('/api/patients', patientRoutes);
 // Health check route
 app.get('/', (req, res) => {
   res.json({
-    status: 'DAASS backend running on Vercel',
+    status: 'DAASS backend running on Render',
     time: new Date().toISOString()
   });
 });
 
-// ─── MongoDB connection (NO app.listen) ───
+// ─── MongoDB connection ─────────────────────
 let isConnected = false;
 
 async function connectDB() {
@@ -48,10 +48,15 @@ async function connectDB() {
     console.log("MongoDB connected");
   } catch (err) {
     console.error("MongoDB connection error:", err);
+    process.exit(1); // Stop server if DB fails
   }
 }
 
-connectDB();
+// ─── Start Server ───────────────────────────
+const PORT = process.env.PORT || 5000;
 
-// ─── EXPORT app for Vercel ─────────────────
-export default app;
+connectDB().then(() => {
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+});
