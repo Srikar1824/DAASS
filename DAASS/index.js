@@ -2,7 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
-import patientRoutes from '../routes/patients.js';
+import patientRoutes from './routes/patients.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
